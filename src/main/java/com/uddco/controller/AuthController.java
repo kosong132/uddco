@@ -34,7 +34,14 @@ public class AuthController {
             throw new RuntimeException("Login failed: " + e.getMessage());
         }
     }
-
+ @PostMapping("/request-reset-password")
+    public String requestResetPassword(@RequestParam String email) {
+        try {
+            return authService.requestResetPassword(email);
+        } catch (Exception e) {
+            return "Error: " + e.getMessage();
+        }
+    }
     @PostMapping("/reset-password")
     public String resetPassword(@RequestParam String email, @RequestParam String newPassword) {
         try {

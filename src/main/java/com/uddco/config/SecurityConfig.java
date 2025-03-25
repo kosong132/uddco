@@ -16,9 +16,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable()) // Use lambda to disable CSRF
+            .csrf(csrf -> csrf.disable()) // Disable CSRF
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/register", "/auth/login", "/auth/reset-password").permitAll() // Allow public access
+                .requestMatchers(
+                    "/auth/register", 
+                    "/auth/login", 
+                    "/auth/request-reset-password", 
+                    "/auth/reset-password",
+                    "/request-reset-password-json"
+                ).permitAll() // Allow public access to these endpoints
                 .anyRequest().authenticated() // All other requests require authentication
             )
             .httpBasic(withDefaults()); // Use HTTP Basic Authentication (for simplicity)
