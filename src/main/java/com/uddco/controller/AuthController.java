@@ -1,6 +1,9 @@
 package com.uddco.controller;
 
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,6 +15,8 @@ import com.uddco.service.AuthService;
 
 @RestController
 @RequestMapping("/auth")
+@CrossOrigin(origins = "http://localhost:3000")
+
 public class AuthController {
 
     @Autowired
@@ -20,21 +25,25 @@ public class AuthController {
     @PostMapping("/register")
     public String register(@RequestBody User user) {
         try {
+            // Set default role and generate userId
+            user.setRole("User");
+            user.setUserId(UUID.randomUUID().toString());
             return authService.register(user);
         } catch (Exception e) {
-            return "Error: " + e.getMessage();
+            throw new RuntimeException("Registration failed: " + e.getMessage());
         }
     }
 
     @PostMapping("/login")
-    public User login(@RequestParam String email, @RequestParam String password) {
+    public User login(@RequestBody User user) {
         try {
-            return authService.login(email, password);
+            return authService.login(user.getUsername(), user.getPassword());
         } catch (Exception e) {
             throw new RuntimeException("Login failed: " + e.getMessage());
         }
     }
- @PostMapping("/request-reset-password")
+
+    @PostMapping("/request-reset-password")
     public String requestResetPassword(@RequestParam String email) {
         try {
             return authService.requestResetPassword(email);
@@ -42,12 +51,14 @@ public class AuthController {
             return "Error: " + e.getMessage();
         }
     }
+
     @PostMapping("/reset-password")
-    public String resetPassword(@RequestParam String email, @RequestParam String newPassword) {
+    public String resetPassword(@RequestParam String token, @RequestParam String newPassword) {
         try {
-            return authService.resetPassword(email, newPassword);
+            return authService.resetPassword(token, newPassword);
         } catch (Exception e) {
             return "Error: " + e.getMessage();
         }
     }
+
 }

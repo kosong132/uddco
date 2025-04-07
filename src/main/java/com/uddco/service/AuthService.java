@@ -1,6 +1,8 @@
 package com.uddco.service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
@@ -8,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
@@ -25,17 +28,38 @@ public class AuthService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    // public String register(User user) throws ExecutionException, InterruptedException {
+    //     System.out.println("Registering user: " + user.getEmail());
+    //     user.setPassword(passwordEncoder.encode(user.getPassword()));
+    //     firestore.collection("users").document(user.getUserId()).set(user).get();
+    //     return "User registered successfully!";
+    // }
     public String register(User user) throws ExecutionException, InterruptedException {
         System.out.println("Registering user: " + user.getEmail());
+
+        // Encode password
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        // Set role and generate userId if not provided
+        if (user.getRole() == null || user.getRole().isEmpty()) {
+            user.setRole("User");
+        }
+        if (user.getUserId() == null || user.getUserId().isEmpty()) {
+            user.setUserId(UUID.randomUUID().toString());
+        }
+
+        // Save to Firestore
         firestore.collection("users").document(user.getUserId()).set(user).get();
+        System.out.println("User saved to Firestore with ID: " + user.getUserId());
         return "User registered successfully!";
     }
 
-    public User login(String email, String password) throws ExecutionException, InterruptedException {
-        System.out.println("Logging in user: " + email);
+    
+
+    public User login(String username, String password) throws ExecutionException, InterruptedException {
+        System.out.println("Logging in user: " + username);
         QuerySnapshot querySnapshot = firestore.collection("users")
-                .whereEqualTo("email", email)
+                .whereEqualTo("username", username)
                 .get()
                 .get();
 
@@ -52,60 +76,56 @@ public class AuthService {
         return user;
     }
 
-    // Check if email exists and send reset password link
 public String requestResetPassword(String email) throws ExecutionException, InterruptedException {
-    // Trim the email to remove leading/trailing whitespace
     email = email.trim();
 
-    System.out.println("Querying Firestore for email: " + email);
-
-    // Find user by email
     QuerySnapshot querySnapshot = firestore.collection("users")
-            .whereEqualTo("email", email)
-            .get()
-            .get();
+        .whereEqualTo("email", email)
+        .get()
+        .get();
 
     List<QueryDocumentSnapshot> documents = querySnapshot.getDocuments();
-    System.out.println("Number of documents found: " + documents.size());
-
     if (documents.isEmpty()) {
-        System.out.println("No documents found for email: " + email);
         return "Email does not exist!";
     }
 
-    // Log the first document (for debugging)
-    QueryDocumentSnapshot document = documents.get(0);
-    System.out.println("Document data: " + document.getData());
-
-    // Generate a unique token (for simplicity, use UUID)
+    // Generate token
     String token = UUID.randomUUID().toString();
+    String userId = documents.get(0).getId();
 
-    // Send reset password link via email
-    String resetLink = "http://your-frontend-url/reset-password?token=" + token;
+    // Save token to Firestore (could use a "password_resets" collection)
+    Map<String, Object> tokenData = new HashMap<>();
+    tokenData.put("userId", userId);
+    tokenData.put("token", token);
+    tokenData.put("email", email);
+    tokenData.put("createdAt", System.currentTimeMillis());
+
+    firestore.collection("reset_tokens").document(token).set(tokenData).get();
+
+    // Send link with token
+    String resetLink = "http://localhost:3000/reset-new-password?token=" + token;
     emailUtil.sendResetPasswordEmail(email, resetLink);
 
     return "Reset password link sent to your email!";
 }
-    // Reset password
-    public String resetPassword(String email, String newPassword) throws ExecutionException, InterruptedException {
-        // Find user by email
-        QuerySnapshot querySnapshot = firestore.collection("users")
-                .whereEqualTo("email", email)
-                .get()
-                .get();
 
-        List<QueryDocumentSnapshot> documents = querySnapshot.getDocuments();
-        if (documents.isEmpty()) {
-            throw new RuntimeException("User not found!");
-        }
-
-        // Update the password
-        String userId = documents.get(0).getId();
-        firestore.collection("users").document(userId)
-                .update("password", passwordEncoder.encode(newPassword))
-                .get();
-
-        return "Password reset successfully!";
+    public String resetPassword(String token, String newPassword) throws ExecutionException, InterruptedException {
+    DocumentSnapshot snapshot = firestore.collection("reset_tokens").document(token).get().get();
+    if (!snapshot.exists()) {
+        throw new RuntimeException("Invalid or expired token!");
     }
+
+    String userId = snapshot.getString("userId");
+
+    // Update the password
+    firestore.collection("users").document(userId)
+        .update("password", passwordEncoder.encode(newPassword))
+        .get();
+
+    // Optionally delete the token after use
+    firestore.collection("reset_tokens").document(token).delete();
+
+    return "Password reset successfully!";
+}
 
 }
