@@ -19,11 +19,13 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable()) // Disable CSRF
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
-                    "/auth/register", 
-                    "/auth/login", 
-                    "/auth/request-reset-password", 
-                    "/auth/reset-password",
-                    "/request-reset-password-json"
+                "/auth/register", 
+                "/auth/login", 
+                "/auth/request-reset-password", 
+                "/auth/request-reset-password/mobile", 
+                "/auth/reset-password",
+                "/auth/reset-password/mobile",
+                "/request-reset-password-json"
                 ).permitAll() // Allow public access to these endpoints
                 .anyRequest().authenticated() // All other requests require authentication
             )

@@ -3,6 +3,8 @@ package com.uddco.controller;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,14 +25,15 @@ public class AuthController {
     private AuthService authService;
 
     @PostMapping("/register")
-    public String register(@RequestBody User user) {
+    public ResponseEntity<String> register(@RequestBody User user) {
         try {
             // Set default role and generate userId
             user.setRole("User");
             user.setUserId(UUID.randomUUID().toString());
-            return authService.register(user);
+            return ResponseEntity.ok(authService.register(user));  // Successful registration
         } catch (Exception e) {
-            throw new RuntimeException("Registration failed: " + e.getMessage());
+            // Return the error message with a specific HTTP status code
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
@@ -44,11 +47,24 @@ public class AuthController {
     }
 
     @PostMapping("/request-reset-password")
-    public String requestResetPassword(@RequestParam String email) {
+    public String requestResetPassword(@RequestParam String email,
+            @RequestParam(defaultValue = "false") boolean isMobile) {
         try {
-            return authService.requestResetPassword(email);
+            return authService.requestResetPassword(email, isMobile);
         } catch (Exception e) {
             return "Error: " + e.getMessage();
+        }
+    }
+
+    @PostMapping("/request-reset-password/mobile")
+    public ResponseEntity<String> requestMobileResetOtp(@RequestParam String email) {
+        try {
+            String result = authService.requestResetOtp(email);  // This will call the new OTP method
+            return ResponseEntity.ok(result); // ✅ Success
+        } catch (Exception e) {
+            e.printStackTrace(); // Log for debugging
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Server error: " + e.getMessage()); // Return detailed error message
         }
     }
 
@@ -58,6 +74,20 @@ public class AuthController {
             return authService.resetPassword(token, newPassword);
         } catch (Exception e) {
             return "Error: " + e.getMessage();
+        }
+    }
+
+    @PostMapping("/reset-password/mobile")
+    public ResponseEntity<String> resetPasswordMobile(@RequestParam String otp, @RequestParam String newPassword) {
+        try {
+            // Trim input to avoid issues with leading/trailing spaces
+            String trimmedOtp = otp.trim();
+            // Call service to reset password with OTP
+            String result = authService.resetPasswordWithOtp(trimmedOtp, newPassword);
+            return ResponseEntity.ok(result); // ✅ Success
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Error: " + e.getMessage()); // ✅ Error with message
         }
     }
 
