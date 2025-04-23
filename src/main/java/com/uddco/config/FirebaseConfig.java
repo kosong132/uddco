@@ -20,7 +20,9 @@ public class FirebaseConfig {
         FileInputStream serviceAccount = new FileInputStream("src/main/resources/serviceAccountKey.json");
         FirebaseOptions options = FirebaseOptions.builder()
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                .setStorageBucket("uddco-f3018.firebasestorage.app")  // Corrected bucket name
                 .build();
+
         return FirebaseApp.initializeApp(options);
     }
 
