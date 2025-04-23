@@ -10,6 +10,8 @@ import java.util.concurrent.ExecutionException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.google.api.core.ApiFuture;
+import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
@@ -100,13 +102,11 @@ public String uploadImageToFirebase(MultipartFile file) throws IOException {
      */
     public String updateProduct(Product product) throws ExecutionException, InterruptedException {
         Firestore db = FirestoreClient.getFirestore();
-        db.collection(COLLECTION_NAME)
-                .document(product.getId())
-                .set(product)
-                .get();
-        return "Product updated successfully!";
-    }
+        DocumentReference docRef = db.collection(COLLECTION_NAME).document(product.getId());
 
+        ApiFuture<com.google.cloud.firestore.WriteResult> writeResult = docRef.set(product);
+        return "Product updated at: " + writeResult.get().getUpdateTime();
+    }
     /**
      * Deletes a Product document by ID.
      */
