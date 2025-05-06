@@ -10,6 +10,7 @@ public class Product {
     private String price;
     private List<Color> colors; // Changed to use a custom Color class
     private List<String> customizationOptions;
+    private List<String> availableSizes;
     private String description;
     private boolean available;
     private String imageUrl;
@@ -44,4 +45,8 @@ public class Product {
 
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+
+    public List<String> getAvailableSizes() {return availableSizes; }
+    public void setAvailableSizes(List<String> availableSizes) { this.availableSizes = availableSizes; }
+
 }

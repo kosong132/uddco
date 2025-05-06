@@ -56,16 +56,17 @@ public class ProductController {
         }
     }
 
-@PostMapping("add")
-public ResponseEntity<String> addProduct(@RequestBody Product product) {
-    try {
-        String result = productService.addProduct(product);
-        return ResponseEntity.ok(result);
-    } catch (Exception e) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Product save failed: " + e.getMessage());
+    @PostMapping("/add")
+    public ResponseEntity<String> addProduct(@RequestBody Product product) {
+        
+        try {
+            String result = productService.addProduct(product);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Product save failed: " + e.getMessage());
+        }
     }
-}
 
     /**
      * Get all products.
