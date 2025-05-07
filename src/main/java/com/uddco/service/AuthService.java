@@ -53,10 +53,27 @@ public class AuthService {
         // Encode password
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        // Set role and generate userId if not provided
+        // Set default role as "Seller" if not provided by frontend
         if (user.getRole() == null || user.getRole().isEmpty()) {
-            user.setRole("User");
+            user.setRole("Seller");
+            user.setUserLevel(1); // Seller = 1
+        } else {
+            // Set userLevel based on role from frontend
+            switch (user.getRole()) {
+                case "Customer":
+                    user.setUserLevel(2);
+                    break;
+                case "Seller":
+                default:
+                    user.setUserLevel(1);
+                    break;
+            }
         }
+
+        if (user.getUserLevel() == 0) {
+            user.setUserLevel(2); // 2 = Customer
+        }
+
         if (user.getUserId() == null || user.getUserId().isEmpty()) {
             user.setUserId(UUID.randomUUID().toString());
         }

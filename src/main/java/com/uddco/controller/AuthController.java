@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,14 +39,44 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public User login(@RequestBody User user) {
+    public ResponseEntity<?> login(@RequestBody User user, @RequestParam(value = "client", required = false) String client) {
         try {
-            return authService.login(user.getUsername(), user.getPassword());
+            User authenticatedUser = authService.login(user.getUsername(), user.getPassword());
+
+            // If request is from web, set cookie (e.g., client=web)
+            if ("web".equalsIgnoreCase(client)) {
+                String token = UUID.randomUUID().toString(); // You can use JWT later
+
+                ResponseCookie cookie = ResponseCookie.from("auth_token", token)
+                        .httpOnly(true)
+                        .secure(false) // Change to true in production (HTTPS)
+                        .path("/")
+                        .maxAge(7 * 24 * 60 * 60) // 7 days
+                        .sameSite("Lax")
+                        .build();
+
+                return ResponseEntity.ok()
+                        .header("Set-Cookie", cookie.toString())
+                        .body(authenticatedUser);
+            }
+
+            // For mobile or other clients, return user data only
+            return ResponseEntity.ok(authenticatedUser);
+
         } catch (Exception e) {
-            throw new RuntimeException("Login failed: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Login failed: " + e.getMessage());
         }
     }
 
+    // @PostMapping("/login")
+    // public User login(@RequestBody User user) {
+    //     try {
+    //         return authService.login(user.getUsername(), user.getPassword());
+    //     } catch (Exception e) {
+    //         throw new RuntimeException("Login failed: " + e.getMessage());
+    //     }
+    // }
     @PostMapping("/request-reset-password")
     public String requestResetPassword(@RequestParam String email,
             @RequestParam(defaultValue = "false") boolean isMobile) {
