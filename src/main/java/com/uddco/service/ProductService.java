@@ -64,10 +64,13 @@ public String uploadImageToFirebase(MultipartFile file) throws IOException {
         Firestore db = FirestoreClient.getFirestore();
         List<QueryDocumentSnapshot> documents = db.collection(COLLECTION_NAME).get().get().getDocuments();
         List<Product> productList = new ArrayList<>();
-
-        for (DocumentSnapshot doc : documents) {
-            productList.add(doc.toObject(Product.class));
+ for (DocumentSnapshot doc : documents) {
+        Product product = doc.toObject(Product.class);
+        if (product != null) {
+            product.setId(doc.getId()); // Set Firestore document ID
+            productList.add(product);
         }
+    }
 
         return productList;
     }
@@ -75,15 +78,23 @@ public String uploadImageToFirebase(MultipartFile file) throws IOException {
     /**
      * Fetches a single Product by ID.
      */
-    public Product getProductById(String productId) throws ExecutionException, InterruptedException {
-        Firestore db = FirestoreClient.getFirestore();
-        DocumentSnapshot doc = db.collection(COLLECTION_NAME)
-                .document(productId)
-                .get()
-                .get();
-        return doc.exists() ? doc.toObject(Product.class) : null;
+public Product getProductById(String productId) throws ExecutionException, InterruptedException {
+    Firestore db = FirestoreClient.getFirestore();
+    DocumentSnapshot doc = db.collection(COLLECTION_NAME)
+            .document(productId)
+            .get()
+            .get();
+    
+    if (doc.exists()) {
+        Product product = doc.toObject(Product.class);
+        if (product != null) {
+            product.setId(doc.getId()); // Also set ID here
+        }
+        return product;
     }
 
+    return null;
+}
     /**
      * Returns all Products in the collection.
      */
