@@ -304,4 +304,12 @@ public class AuthService {
         return "Password reset successfully!";
     }
 
+    public User getUserById(String userId) throws ExecutionException, InterruptedException {
+        DocumentSnapshot document = firestore.collection("users").document(userId).get().get();
+        if (!document.exists()) {
+            throw new RuntimeException("User not found with ID: " + userId);
+        }
+        return document.toObject(User.class);
+    }
+
 }

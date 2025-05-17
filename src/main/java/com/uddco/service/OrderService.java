@@ -12,9 +12,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.Query;
+import com.google.cloud.firestore.QueryDocumentSnapshot;
+import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.WriteResult;
 import com.google.firebase.cloud.FirestoreClient;
 import com.google.firebase.cloud.StorageClient;
@@ -45,9 +49,14 @@ public class OrderService {
         StorageClient.getInstance()
                 .bucket()
                 .create("orders/" + fileName, Files.readAllBytes(tempFile.toPath()), file.getContentType());
-
+        // Get the bucket name
+        String bucketName = StorageClient.getInstance().bucket().getName();
         // Return the public URL of the uploaded image
-        return "https://storage.googleapis.com/" + StorageClient.getInstance().bucket().getName() + "/orders/" + fileName;
+        return String.format(
+                "https://firebasestorage.googleapis.com/v0/b/%s/o/%s?alt=media",
+                bucketName,
+                ("orders/" + fileName).replace("/", "%2F")
+        );
     }
 
     /**
@@ -65,12 +74,24 @@ public class OrderService {
         DocumentReference docRef = db.collection(COLLECTION_NAME).document();
 
         // Set a unique order ID (can be any unique identifier)
-        order.setOrderId(System.currentTimeMillis());
+        order.setOrderId(UUID.randomUUID().toString());
 
         // Save the order document in Firestore
         WriteResult result = docRef.set(order).get();
 
         return "Order placed at: " + result.getUpdateTime();
+    }
+
+    public List<Order> getOrdersByUserId(String userId) throws ExecutionException, InterruptedException {
+        CollectionReference orders = firestore.collection("orders");
+        ApiFuture<QuerySnapshot> query = orders.whereEqualTo("userId", userId).get();
+        List<QueryDocumentSnapshot> documents = query.get().getDocuments();
+
+        List<Order> orderList = new ArrayList<>();
+        for (QueryDocumentSnapshot doc : documents) {
+            orderList.add(doc.toObject(Order.class));
+        }
+        return orderList;
     }
 
     /**
@@ -86,15 +107,50 @@ public class OrderService {
     /**
      * Updates the status of an existing order.
      */
-    public String updateOrderStatus(Long orderId, String status) throws ExecutionException, InterruptedException {
+    // public String updateOrderStatus(String orderId, String status) throws ExecutionException, InterruptedException {
+    //     CollectionReference ordersRef = firestore.collection(COLLECTION_NAME);
+    //     for (var doc : ordersRef.get().get().getDocuments()) {
+    //         Order order = doc.toObject(Order.class);
+    //         if (order.getOrderId().equals(orderId)) {
+    //             try {
+    //                 doc.getReference().update("orderStatus", status).get();
+    //                 return "Order status updated to: " + status;
+    //             } catch (Exception e) {
+    //                 return "Failed to update status: " + e.getMessage();
+    //             }
+    //         }
+    //     }
+    //     return "Order not found";
+    // }
+    public String deleteOrder(String orderId) throws ExecutionException, InterruptedException {
         CollectionReference ordersRef = firestore.collection(COLLECTION_NAME);
         for (var doc : ordersRef.get().get().getDocuments()) {
             Order order = doc.toObject(Order.class);
             if (order.getOrderId().equals(orderId)) {
-                doc.getReference().update("orderStatus", status);
-                return "Order status updated to: " + status;
+                try {
+                    doc.getReference().delete().get();
+                    return "Order deleted successfully.";
+                } catch (Exception e) {
+                    return "Failed to delete order: " + e.getMessage();
+                }
             }
         }
-        return "Order not found";
+        return "Order not found.";
     }
+
+    public String updateOrderStatus(String orderId, String status) throws ExecutionException, InterruptedException {
+        CollectionReference ordersRef = firestore.collection(COLLECTION_NAME);
+        Query query = ordersRef.whereEqualTo("orderId", orderId);
+        ApiFuture<QuerySnapshot> querySnapshot = query.get();
+
+        List<QueryDocumentSnapshot> documents = querySnapshot.get().getDocuments();
+        if (!documents.isEmpty()) {
+            DocumentReference docRef = documents.get(0).getReference();
+            docRef.update("orderStatus", status).get();
+            return "Order status updated to: " + status;
+        } else {
+            return "Order with ID " + orderId + " not found.";
+        }
+    }
+
 }

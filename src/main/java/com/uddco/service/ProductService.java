@@ -74,6 +74,21 @@ public String uploadImageToFirebase(MultipartFile file) throws IOException {
 
         return productList;
     }
+public List<Product> getAvailableProducts() throws ExecutionException, InterruptedException {
+    Firestore db = FirestoreClient.getFirestore();
+    List<QueryDocumentSnapshot> documents = db.collection(COLLECTION_NAME).get().get().getDocuments();
+    List<Product> productList = new ArrayList<>();
+
+    for (DocumentSnapshot doc : documents) {
+        Product product = doc.toObject(Product.class);
+        if (product != null && product.isAvailable()) { // ✅ Only add available products
+            product.setId(doc.getId());
+            productList.add(product);
+        }
+    }
+
+    return productList;
+}
 
     /**
      * Fetches a single Product by ID.

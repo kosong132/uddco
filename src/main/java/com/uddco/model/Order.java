@@ -5,7 +5,7 @@ import java.time.format.DateTimeFormatter;
 
 public class Order {
 
-    private Long orderId;
+    private String orderId;
 
     private String productId;
     private String productName;
@@ -25,12 +25,8 @@ public class Order {
         this.createdAt = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
     }
 
-    public Long getOrderId() {
-        return orderId;
-    }
-
-    public void setOrderId(Long orderId) {
-        this.orderId = orderId;
+    public enum OrderStatus {
+        PREPARING, COMPLETED,SHIPPED, DELIVERED, CANCELLED,PROCESSING
     }
 
     public String getProductId() {
@@ -64,8 +60,6 @@ public class Order {
     public void setSelectedSize(String selectedSize) {
         this.selectedSize = selectedSize;
     }
-
-
 
     public String getLogoPosition() {
         return logoPosition;
@@ -137,6 +131,14 @@ public class Order {
 
     public void setSelectedCustomization(String selectedCustomization) {
         this.selectedCustomization = selectedCustomization;
+    }
+
+    public String getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(String orderId) {
+        this.orderId = orderId;
     }
 
 }

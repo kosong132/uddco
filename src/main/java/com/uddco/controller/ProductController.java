@@ -80,6 +80,15 @@ public class ProductController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+@GetMapping("/available")
+public ResponseEntity<List<Product>> getAvailableProducts() {
+    try {
+        List<Product> products = productService.getAvailableProducts();
+        return ResponseEntity.ok(products);
+    } catch (InterruptedException | ExecutionException e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    }
+}
 
     /**
      * Get a single product by its ID.
