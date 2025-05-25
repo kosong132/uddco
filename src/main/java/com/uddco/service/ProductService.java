@@ -22,28 +22,60 @@ import com.uddco.model.Product;
 @Service
 public class ProductService {
 
- 
     private static final String COLLECTION_NAME = "products";
 
-public String uploadImageToFirebase(MultipartFile file) throws IOException {
-    String originalFileName = file.getOriginalFilename();
-    String fileName = UUID.randomUUID().toString() + "_" + (originalFileName != null ? originalFileName : "image");
+    public String uploadModelToFirebase(MultipartFile file) throws IOException {
+        String originalFileName = file.getOriginalFilename();
+        String fileName = UUID.randomUUID().toString() + "_" + (originalFileName != null ? originalFileName : "model");
 
-    InputStream content = file.getInputStream();
+        // Store in the 'clothingModel' folder in Firebase Storage
+        String firebasePath = "clothingModel/" + fileName;
 
-    StorageClient.getInstance()
-            .bucket()
-            .create(fileName, content, file.getContentType());
+        InputStream content = file.getInputStream();
 
-    String bucketName = StorageClient.getInstance().bucket().getName();
+        // ✅ Fix the content type
+        String contentType = file.getContentType();
+        if (contentType == null || contentType.equals("application/octet-stream")) {
+            if (originalFileName != null && originalFileName.toLowerCase().endsWith(".glb")) {
+                contentType = "model/gltf-binary";
+            } else {
+                contentType = "application/octet-stream";
+            }
+        }
 
-    return String.format(
-            "https://firebasestorage.googleapis.com/v0/b/%s/o/%s?alt=media",
-            bucketName,
-            fileName.replace("/", "%2F")
-    );
-}
+        // 🔥 Upload to Firebase
+        StorageClient.getInstance()
+                .bucket()
+                .create(firebasePath, content, contentType);
 
+        String bucketName = StorageClient.getInstance().bucket().getName();
+
+        // ✅ Return public URL (properly encoded)
+        return String.format(
+                "https://firebasestorage.googleapis.com/v0/b/%s/o/%s?alt=media",
+                bucketName,
+                firebasePath.replace("/", "%2F")
+        );
+    }
+
+    public String uploadImageToFirebase(MultipartFile file) throws IOException {
+        String originalFileName = file.getOriginalFilename();
+        String fileName = UUID.randomUUID().toString() + "_" + (originalFileName != null ? originalFileName : "image");
+
+        InputStream content = file.getInputStream();
+
+        StorageClient.getInstance()
+                .bucket()
+                .create(fileName, content, file.getContentType());
+
+        String bucketName = StorageClient.getInstance().bucket().getName();
+
+        return String.format(
+                "https://firebasestorage.googleapis.com/v0/b/%s/o/%s?alt=media",
+                bucketName,
+                fileName.replace("/", "%2F")
+        );
+    }
 
     public String addProduct(Product product) throws ExecutionException, InterruptedException {
         Firestore db = FirestoreClient.getFirestore();
@@ -64,52 +96,54 @@ public String uploadImageToFirebase(MultipartFile file) throws IOException {
         Firestore db = FirestoreClient.getFirestore();
         List<QueryDocumentSnapshot> documents = db.collection(COLLECTION_NAME).get().get().getDocuments();
         List<Product> productList = new ArrayList<>();
- for (DocumentSnapshot doc : documents) {
-        Product product = doc.toObject(Product.class);
-        if (product != null) {
-            product.setId(doc.getId()); // Set Firestore document ID
-            productList.add(product);
+        for (DocumentSnapshot doc : documents) {
+            Product product = doc.toObject(Product.class);
+            if (product != null) {
+                product.setId(doc.getId()); // Set Firestore document ID
+                productList.add(product);
+            }
         }
-    }
 
         return productList;
     }
-public List<Product> getAvailableProducts() throws ExecutionException, InterruptedException {
-    Firestore db = FirestoreClient.getFirestore();
-    List<QueryDocumentSnapshot> documents = db.collection(COLLECTION_NAME).get().get().getDocuments();
-    List<Product> productList = new ArrayList<>();
 
-    for (DocumentSnapshot doc : documents) {
-        Product product = doc.toObject(Product.class);
-        if (product != null && product.isAvailable()) { // ✅ Only add available products
-            product.setId(doc.getId());
-            productList.add(product);
+    public List<Product> getAvailableProducts() throws ExecutionException, InterruptedException {
+        Firestore db = FirestoreClient.getFirestore();
+        List<QueryDocumentSnapshot> documents = db.collection(COLLECTION_NAME).get().get().getDocuments();
+        List<Product> productList = new ArrayList<>();
+
+        for (DocumentSnapshot doc : documents) {
+            Product product = doc.toObject(Product.class);
+            if (product != null && product.isAvailable()) { // ✅ Only add available products
+                product.setId(doc.getId());
+                productList.add(product);
+            }
         }
-    }
 
-    return productList;
-}
+        return productList;
+    }
 
     /**
      * Fetches a single Product by ID.
      */
-public Product getProductById(String productId) throws ExecutionException, InterruptedException {
-    Firestore db = FirestoreClient.getFirestore();
-    DocumentSnapshot doc = db.collection(COLLECTION_NAME)
-            .document(productId)
-            .get()
-            .get();
-    
-    if (doc.exists()) {
-        Product product = doc.toObject(Product.class);
-        if (product != null) {
-            product.setId(doc.getId()); // Also set ID here
+    public Product getProductById(String productId) throws ExecutionException, InterruptedException {
+        Firestore db = FirestoreClient.getFirestore();
+        DocumentSnapshot doc = db.collection(COLLECTION_NAME)
+                .document(productId)
+                .get()
+                .get();
+
+        if (doc.exists()) {
+            Product product = doc.toObject(Product.class);
+            if (product != null) {
+                product.setId(doc.getId()); // Also set ID here
+            }
+            return product;
         }
-        return product;
+
+        return null;
     }
 
-    return null;
-}
     /**
      * Returns all Products in the collection.
      */
@@ -133,6 +167,7 @@ public Product getProductById(String productId) throws ExecutionException, Inter
         ApiFuture<com.google.cloud.firestore.WriteResult> writeResult = docRef.set(product);
         return "Product updated at: " + writeResult.get().getUpdateTime();
     }
+
     /**
      * Deletes a Product document by ID.
      */
@@ -144,4 +179,5 @@ public Product getProductById(String productId) throws ExecutionException, Inter
                 .get();
         return "Product deleted successfully!";
     }
+    // https://firebasestorage.googleapis.com/v0/b/uddco-f3018.firebasestorage.app/o/PoloT.glb?alt=media&token=d4138e4e-aa3d-44d2-935f-649ccc7acf79;
 }

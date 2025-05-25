@@ -34,6 +34,32 @@ public class ProductController {
     /**
      * Upload image to Firebase Storage. Returns the public URL.
      */
+    @PostMapping("/upload-model")
+    public ResponseEntity<?> uploadClothingModel(@RequestParam("model") MultipartFile file) {
+        try {
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().body("No file selected for upload.");
+            }
+
+            String fileName = file.getOriginalFilename();
+            if (fileName == null || (!fileName.toLowerCase().endsWith(".glb")
+                    && !fileName.toLowerCase().endsWith(".obj")
+                    && !fileName.toLowerCase().endsWith(".fbx"))) {
+                return ResponseEntity.badRequest().body("Invalid file type. Only .glb, .obj, .fbx files are allowed.");
+            }
+
+            String modelUrl = productService.uploadModelToFirebase(file);
+            return ResponseEntity.status(HttpStatus.CREATED).body(
+                    Map.of("modelUrl", modelUrl, "fileName", fileName)
+            );
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Model upload failed: " + e.getMessage());
+        }
+    }
+
     @PostMapping("/upload-image")
     public ResponseEntity<?> uploadImage(@RequestParam("image") MultipartFile file) {
         try {
@@ -58,7 +84,7 @@ public class ProductController {
 
     @PostMapping("/add")
     public ResponseEntity<String> addProduct(@RequestBody Product product) {
-        
+
         try {
             String result = productService.addProduct(product);
             return ResponseEntity.ok(result);
@@ -80,15 +106,16 @@ public class ProductController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-@GetMapping("/available")
-public ResponseEntity<List<Product>> getAvailableProducts() {
-    try {
-        List<Product> products = productService.getAvailableProducts();
-        return ResponseEntity.ok(products);
-    } catch (InterruptedException | ExecutionException e) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+
+    @GetMapping("/available")
+    public ResponseEntity<List<Product>> getAvailableProducts() {
+        try {
+            List<Product> products = productService.getAvailableProducts();
+            return ResponseEntity.ok(products);
+        } catch (InterruptedException | ExecutionException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
-}
 
     /**
      * Get a single product by its ID.

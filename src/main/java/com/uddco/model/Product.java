@@ -14,6 +14,7 @@ public class Product {
     private String description;
     private boolean available;
     private String imageUrl;
+    private String modelUrl;
     private String size;
     // Getters and Setters
     public String getId() { return id; }
@@ -55,6 +56,14 @@ public class Product {
 
     public void setSize(String size) {
         this.size = size;
+    }
+
+    public String getModelUrl() {
+        return modelUrl;
+    }
+
+    public void setModelUrl(String modelUrl) {
+        this.modelUrl = modelUrl;
     }
 
 }
