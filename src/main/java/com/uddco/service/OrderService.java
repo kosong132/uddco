@@ -104,24 +104,7 @@ public class OrderService {
         return orders;
     }
 
-    /**
-     * Updates the status of an existing order.
-     */
-    // public String updateOrderStatus(String orderId, String status) throws ExecutionException, InterruptedException {
-    //     CollectionReference ordersRef = firestore.collection(COLLECTION_NAME);
-    //     for (var doc : ordersRef.get().get().getDocuments()) {
-    //         Order order = doc.toObject(Order.class);
-    //         if (order.getOrderId().equals(orderId)) {
-    //             try {
-    //                 doc.getReference().update("orderStatus", status).get();
-    //                 return "Order status updated to: " + status;
-    //             } catch (Exception e) {
-    //                 return "Failed to update status: " + e.getMessage();
-    //             }
-    //         }
-    //     }
-    //     return "Order not found";
-    // }
+
     public String deleteOrder(String orderId) throws ExecutionException, InterruptedException {
         CollectionReference ordersRef = firestore.collection(COLLECTION_NAME);
         for (var doc : ordersRef.get().get().getDocuments()) {
@@ -154,3 +137,21 @@ public class OrderService {
     }
 
 }
+    /**
+     * Updates the status of an existing order.
+     */
+    // public String updateOrderStatus(String orderId, String status) throws ExecutionException, InterruptedException {
+    //     CollectionReference ordersRef = firestore.collection(COLLECTION_NAME);
+    //     for (var doc : ordersRef.get().get().getDocuments()) {
+    //         Order order = doc.toObject(Order.class);
+    //         if (order.getOrderId().equals(orderId)) {
+    //             try {
+    //                 doc.getReference().update("orderStatus", status).get();
+    //                 return "Order status updated to: " + status;
+    //             } catch (Exception e) {
+    //                 return "Failed to update status: " + e.getMessage();
+    //             }
+    //         }
+    //     }
+    //     return "Order not found";
+    // }

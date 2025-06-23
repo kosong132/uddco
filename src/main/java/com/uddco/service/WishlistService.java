@@ -94,7 +94,7 @@ public class WishlistService {
         return allItems;
     }
 
-    ; public Wishlist updateWishlistItem(String wishlistId, Wishlist updatedWishlist) throws ExecutionException, InterruptedException {
+    public Wishlist updateWishlistItem(String wishlistId, Wishlist updatedWishlist) throws ExecutionException, InterruptedException {
         CollectionReference wishlistRef = firestore.collection(COLLECTION_NAME);
         Query query = wishlistRef.whereEqualTo("wishlistId", wishlistId);
         ApiFuture<QuerySnapshot> querySnapshot = query.get();

@@ -144,22 +144,7 @@ public class ProductService {
         return null;
     }
 
-    /**
-     * Returns all Products in the collection.
-     */
-    // public List<Product> getAllProducts() throws ExecutionException, InterruptedException {
-    //     Firestore db = FirestoreClient.getFirestore();
-    //     ApiFuture<QuerySnapshot> future = db.collection(COLLECTION_NAME).get();
-    //     List<QueryDocumentSnapshot> docs = future.get().getDocuments();
-    //     List<Product> products = new ArrayList<>();
-    //     for (DocumentSnapshot doc : docs) {
-    //         products.add(doc.toObject(Product.class));
-    //     }
-    //     return products;
-    // }
-    /**
-     * Overwrites an existing Product document.
-     */
+
     public String updateProduct(Product product) throws ExecutionException, InterruptedException {
         Firestore db = FirestoreClient.getFirestore();
         DocumentReference docRef = db.collection(COLLECTION_NAME).document(product.getId());
