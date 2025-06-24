@@ -311,5 +311,33 @@ public class AuthService {
         }
         return document.toObject(User.class);
     }
+// In com.uddco.service.AuthService.java
+
+    public String updateProfile(String userId, String email, String phoneNumber, String address) throws Exception {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("email", email);
+        updates.put("phoneNumber", phoneNumber);
+        updates.put("address", address);
+
+        firestore.collection("users").document(userId).update(updates).get();
+        return "Profile updated successfully!";
+    }
+
+    public String changePassword(String userId, String currentPassword, String newPassword) throws Exception {
+        DocumentSnapshot snapshot = firestore.collection("users").document(userId).get().get();
+        if (!snapshot.exists()) {
+            throw new RuntimeException("User not found");
+        }
+
+        User user = snapshot.toObject(User.class);
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new RuntimeException("Current password is incorrect");
+        }
+
+        firestore.collection("users").document(userId)
+                .update("password", passwordEncoder.encode(newPassword)).get();
+
+        return "Password changed successfully!";
+    }
 
 }

@@ -124,11 +124,35 @@ public class AuthController {
                     .body("Error: " + e.getMessage()); // ✅ Error with message
         }
     }
-        // GET /auth/users/{userId}
+    // GET /auth/users/{userId}
+
     @GetMapping("/users/{userId}")
     public User getUserById(@PathVariable String userId) throws ExecutionException, InterruptedException {
         return authService.getUserById(userId);
     }
+// In com.uddco.controller.AuthController.java
 
+    @PostMapping("/update-profile")
+    public ResponseEntity<String> updateProfile(@RequestParam String userId,
+            @RequestParam String email,
+            @RequestParam String phoneNumber,
+            @RequestParam String address) {
+        try {
+            return ResponseEntity.ok(authService.updateProfile(userId, email, phoneNumber, address));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<String> changePassword(@RequestParam String userId,
+            @RequestParam String currentPassword,
+            @RequestParam String newPassword) {
+        try {
+            return ResponseEntity.ok(authService.changePassword(userId, currentPassword, newPassword));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+        }
+    }
 
 }

@@ -9,7 +9,7 @@ public class User {
     private String role;         // User's role in the system (e.g., "User")
     private int userLevel;       // 1 = Seller, 2 = Customer
     private String token;        // JWT token for authenticated sessions
-
+    private String address;
     // Constructors
     public User() {}
 
@@ -87,5 +87,13 @@ public class User {
 
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 }
