@@ -14,7 +14,7 @@ public class WebMvcConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("https://uddco-frontend.vercel.app")
+                        .allowedOrigins("https://uddcoweb-kosong132s-projects.vercel.app")
                         .allowedMethods("*")
                           .allowedHeaders("*")
                         .allowCredentials(true);
