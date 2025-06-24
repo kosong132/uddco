@@ -14,8 +14,8 @@ public class WebMvcConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:3000")
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                        .allowedOrigins("https://uddco-frontend.vercel.app")
+                        .allowedMethods("*")
                           .allowedHeaders("*")
                         .allowCredentials(true);
             }
