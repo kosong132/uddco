@@ -5,7 +5,7 @@ public class User {
     private String username;     // User's username
     private String password;     // User's password
     private String email;        // User's email address
-    private int phoneNumber;     // User's phone number
+    private String phoneNumber;     // User's phone number
     private String role;         // User's role in the system (e.g., "User")
     private int userLevel;       // 1 = Seller, 2 = Customer
     private String token;        // JWT token for authenticated sessions
@@ -13,7 +13,7 @@ public class User {
     // Constructors
     public User() {}
 
-    public User(String userId, String username, String password, String email, int phoneNumber, String role, int userLevel, String token) {
+    public User(String userId, String username, String password, String email, String phoneNumber, String role, int userLevel, String token) {
         this.userId = userId;
         this.username = username;
         this.password = password;
@@ -57,11 +57,11 @@ public class User {
         this.email = email;
     }
 
-    public int getPhoneNumber() {
+    public String getPhoneNumber() {
         return phoneNumber;
     }
 
-    public void setPhoneNumber(int phoneNumber) {
+    public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
     }
 
