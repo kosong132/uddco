@@ -151,7 +151,7 @@ public class AuthService {
         } else {
             // Generate UUID for web and create a password reset link
             token = UUID.randomUUID().toString();
-            String resetLink = "http://localhost:3000/reset-new-password?token=" + token;
+          String resetLink = "https://uddcoweb-kosong132s-projects.vercel.app/reset-new-password?token=" + token;
             message = "<h1>Reset Your Password</h1>"
                     + "<p>Click the link below to reset your password:</p>"
                     + "<p><a href=\"" + resetLink + "\">Reset Password</a></p>"
