@@ -1,5 +1,6 @@
 package com.uddco.service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -151,7 +152,7 @@ public class AuthService {
         } else {
             // Generate UUID for web and create a password reset link
             token = UUID.randomUUID().toString();
-          String resetLink = "https://uddcoweb-kosong132s-projects.vercel.app/reset-new-password?token=" + token;
+            String resetLink = "https://uddcoweb-kosong132s-projects.vercel.app/reset-new-password?token=" + token;
             message = "<h1>Reset Your Password</h1>"
                     + "<p>Click the link below to reset your password:</p>"
                     + "<p><a href=\"" + resetLink + "\">Reset Password</a></p>"
@@ -338,6 +339,52 @@ public class AuthService {
                 .update("password", passwordEncoder.encode(newPassword)).get();
 
         return "Password changed successfully!";
+    }
+
+    public Map<String, Object> getUserInfoByIdentifier(String identifier) {
+        try {
+            List<QueryDocumentSnapshot> docs = firestore.collection("users").get().get().getDocuments();
+
+            for (DocumentSnapshot doc : docs) {
+                String email = doc.getString("email");
+                String username = doc.getString("username");
+
+                if (identifier.equalsIgnoreCase(email) || identifier.equalsIgnoreCase(username)) {
+                    Map<String, Object> userInfo = new HashMap<>();
+                    userInfo.put("userId", doc.getId());
+                    userInfo.put("username", username);
+                    userInfo.put("email", email);
+                    userInfo.put("phoneNumber", doc.getString("phoneNumber"));
+                    userInfo.put("address", doc.getString("address"));
+                    userInfo.put("role", doc.getString("role"));
+                    return userInfo;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public List<Map<String, Object>> getAllUsers() throws ExecutionException, InterruptedException {
+        List<Map<String, Object>> users = new ArrayList<>();
+
+        List<QueryDocumentSnapshot> docs = firestore.collection("users").get().get().getDocuments();
+
+        for (DocumentSnapshot doc : docs) {
+            User user = doc.toObject(User.class);
+            Map<String, Object> u = new HashMap<>();
+            u.put("username", user.getUsername());
+            u.put("email", user.getEmail());
+            u.put("phoneNumber", user.getPhoneNumber());
+            u.put("address", user.getAddress());
+            u.put("role", user.getRole());
+            u.put("userLevel", user.getUserLevel());
+            u.put("userId", user.getUserId());
+            users.add(u);
+        }
+
+        return users;
     }
 
 }
