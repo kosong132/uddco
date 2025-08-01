@@ -31,7 +31,7 @@ public class FirebaseConfig {
 
         FirebaseOptions options = FirebaseOptions.builder()
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                .setStorageBucket("uddco-f3018.firebasestorage.app") // ✅ Correct Firebase storage bucket
+                .setStorageBucket("firebase-adminsdk-fbsvc@uddco-f3018.iam.gserviceaccount.com") // ✅ Correct Firebase storage bucket
                 .build();
 
         return FirebaseApp.initializeApp(options);
